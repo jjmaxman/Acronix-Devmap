@@ -38,6 +38,7 @@ module.LoadModule = function()
 		if currentModule:CreateOffsets(currentWeaponValue, currentModule:GetOffsets()) and currentModule:CreateLerps(currentWeaponValue, currentModule.Lerps) then
 			currentViewModel = weaponsFolder:FindFirstChild(currentWeaponValue.Value).Model.Weapon:Clone()
 			currentViewModel.Parent = globals.Camera
+			currentModule.EquipViewModel(currentViewModel.Humanoid)
 			humanoidRootpart = char:WaitForChild("HumanoidRootPart")
 		end
 
@@ -142,7 +143,7 @@ module.LoadModule = function()
 						break
 					end
 					canShoot = false
-					shoot:FireServer(currentViewModel.Hole.Position, currentViewModel.BarrelHole.Position)
+					shoot:FireServer(currentViewModel.weapon.Hole.Position, currentViewModel.weapon.BarrelHole.Position)
 					currentModule:GenerateRecoil(currentModule.currentSprings.CameraRecoilSpring, dt)
 					currentModule:GenerateWeapRecoil(currentModule.currentSprings.WeaponLinearRecoilSpring, dt)
 					currentModule:GenerateWeapRotRecoil(currentModule.currentSprings.WeaponRotRecoilSpring, dt)

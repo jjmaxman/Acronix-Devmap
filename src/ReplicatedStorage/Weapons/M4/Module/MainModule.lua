@@ -3,7 +3,9 @@
 
 --Variables and modules--
 local globals = require(game:GetService("ReplicatedStorage").Utilities.Globals)
-local weapon = script.Parent.Parent.Model.Weapon
+local folder = script.Parent.Parent
+local weaponModel = folder.Model.Weapon
+local weapon = weaponModel.weapon
 local aimPart = weapon.AimPart
 local springModule = require(game:GetService("ReplicatedStorage").Utilities.spring)
 local utilities = require(game:GetService("ReplicatedStorage").Utilities.UsefulFunctions)
@@ -52,6 +54,12 @@ module.WeaponOffsetCF = weapon.CameraPart.CFrame:Inverse() * weapon.PrimaryPart.
 module.BulletVelocity = 3003
 module.AimOffsetCF = (aimPartOffset:Inverse() * module.WeaponOffsetCF):Inverse()
 
+--Important Instances
+module.Animations = weaponModel.Animations
+--(LMAO nvm am stupid these aren't replicated XD)--
+--[[module.Hole = weapon.Hole
+module.BarrelHole = weapon.BarrelHole]]--
+
 
 --//Tables\\--
 --Lerps--
@@ -71,6 +79,19 @@ module.Damage = {
 	["LowerLeg"] = 26;
 	["Foot"] = 15;
 }
+
+--Animation Functions--
+function module.IdleViewModel(humanoid: Humanoid)
+	local track: AnimationTrack = humanoid.Animator:LoadAnimation(module.Animations.Idle)
+	track:Play()
+end
+function module.EquipViewModel(humanoid: Humanoid)
+	local track: AnimationTrack = humanoid.Animator:LoadAnimation(module.Animations.Equip)
+	track.Ended:Once(function()
+		module.IdleViewModel(humanoid)
+	end)
+	track:Play()
+end
 
 --Recoil Settings--
 module.recoil = {
