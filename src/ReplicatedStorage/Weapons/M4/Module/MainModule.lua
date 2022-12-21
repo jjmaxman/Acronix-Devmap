@@ -88,6 +88,7 @@ end
 function module.EquipViewModel(humanoid: Humanoid)
 	local track: AnimationTrack = humanoid.Animator:LoadAnimation(module.Animations.Equip)
 	track.Ended:Once(function()
+		print("Track Ended")
 		module.IdleViewModel(humanoid)
 	end)
 	track:Play()

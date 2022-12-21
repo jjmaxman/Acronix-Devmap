@@ -1,5 +1,6 @@
 local globals = require(game:GetService("ReplicatedStorage").Utilities.Globals)
 local usefulFunctions = require(game:GetService("ReplicatedStorage").Utilities.UsefulFunctions)
+local springModule = require(game:GetService("ReplicatedStorage").Utilities.spring)
 local plr = globals.Players.LocalPlayer
 local weaponInfo = plr:WaitForChild('WeaponInfo')
 local primary = weaponInfo.Primary
@@ -89,7 +90,9 @@ module.LoadModule = function()
 			currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.Angles(-swayer.y,-swayer.x,swayer.y))
 			currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(aimCF.x,aimCF.y,aimCF.z))
 
-			if not walking then
+			if walking then
+
+			elseif not walking then
 				currentModule.currentSprings.IdleSpring:shove(Vector3.new(usefulFunctions.getBobbing(5, 1, modifier), usefulFunctions.getBobbing(2.5,4,modifier), usefulFunctions.getBobbing(5,4,modifier)))
 				local idleSpring = currentModule.currentSprings.IdleSpring:update(dt)
 				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(idleSpring.x,idleSpring.y,0))
