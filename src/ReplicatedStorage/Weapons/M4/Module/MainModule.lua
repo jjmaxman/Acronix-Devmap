@@ -49,11 +49,18 @@ module.HeatValue = 1 --Higher = Lower Spread
 
 module.AimIn = .7
 module.AimOut = .5
-module.RPM = 780
+module.RPMs = {
+	["Auto"] = 840;
+	["Semi"] = 840;
+	["Burst"] = 1000;
+}
+module.BurstDelayTime = .2
+module.FireModes = {"Auto","Burst","Semi"}
 module.WalkSpeed = 21
 module.WeaponOffsetCF = weapon.CameraPart.CFrame:Inverse() * weapon.PrimaryPart.CFrame
 module.BulletVelocity = 3003
 module.AimOffsetCF = (aimPartOffset:Inverse() * module.WeaponOffsetCF):Inverse()
+module.CurrentFireMode = module.FireModes[1]
 
 --Important Instances
 module.Animations = weaponModel.Animations
@@ -97,15 +104,23 @@ end
 
 --Recoil Settings--
 module.recoil = {
-	viewModel = {translation = Vector3.new(0,0,.5), rotational = {min = Vector3.new(-0.45,1.49,0.45), max = Vector3.new(0.31,2.04,0.45)}},
+	["viewModel"] = {translation = Vector3.new(0,0,.5), rotational = {min = Vector3.new(-0.45,1.49,0.45), max = Vector3.new(0.31,2.04,0.45)}},
 
-	Auto = {
+	["Auto"] = {
 		[1] = {min = Vector3.new(4,0,-10), max = Vector3.new(4.5,0,10)};
 		[2] = {min = Vector3.new(3,-.25,-10), max = Vector3.new(4,.25,10)};
 		[3] = {min = Vector3.new(2,-.5,-10), max = Vector3.new(3,.5,10)};
 		[5] = {min = Vector3.new(1,-.65,-10), max = Vector3.new(1.5,.65,10)};
 		[15] = {min = Vector3.new(.75,-.7,-10), max = Vector3.new(1, .7,10)};
-	}
+	};
+
+	["Burst"] = {
+		[1] = {min = Vector3.new(2,-.5,-10), max = Vector3.new(2,.5,10)};
+		[2] = {min = Vector3.new(1,-.65,-10), max = Vector3.new(1.5,.65,10)};
+		[3] = {min = Vector3.new(.75,-.7,-10), max = Vector3.new(1, .7,10)};
+	};
+
+	["Semi"] = {min = Vector3.new(1.5, -.7, -3), max = Vector3.new(2.2, .7, 3)}
 }
 
 --External + Recoil functions--
@@ -151,13 +166,18 @@ local function RaiseHeatValue()
 	module.HeatValue += 1
 end
 
-function module:GenerateRecoil(spring,dt) --Camera recoil
-	RaiseHeatValue()
-	local currentRecoilValue = module.recoil.Auto[module.HeatValue]
-	if currentRecoilValue == nil then
-		currentRecoilValue = module.recoil.Auto[lastWorkingHeatValue]
-	else
-		lastWorkingHeatValue = module.HeatValue
+function module:GenerateRecoil(spring,dt) --Camera recoil 
+	local currentRecoilValue
+	if module.CurrentFireMode == "Auto" or module.CurrentFireMode == "Burst" then
+		RaiseHeatValue()
+		currentRecoilValue = module.recoil[module.CurrentFireMode][module.HeatValue]
+		if currentRecoilValue == nil then
+			currentRecoilValue = module.recoil[module.CurrentFireMode][lastWorkingHeatValue]
+		else
+			lastWorkingHeatValue = module.HeatValue
+		end
+	elseif module.CurrentFireMode == "Semi" then
+		currentRecoilValue = module.recoil.Semi
 	end
 
 	local conversion = utilities.RandomVector3Angle(currentRecoilValue.min, currentRecoilValue.max,3)

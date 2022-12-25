@@ -2,6 +2,7 @@ local globals = require(game:GetService("ReplicatedStorage").Utilities.Globals)
 local usefulFunctions = require(game:GetService("ReplicatedStorage").Utilities.UsefulFunctions)
 local springModule = require(game:GetService("ReplicatedStorage").Utilities.spring)
 local plr = globals.Players.LocalPlayer
+local plrGui = plr.PlayerGui
 local weaponInfo = plr:WaitForChild('WeaponInfo')
 local primary = weaponInfo.Primary
 local secondary = weaponInfo.Secondary
@@ -54,6 +55,18 @@ module.LoadModule = function()
 			end
 		end)
 	end)
+
+	--Functions--
+	local function fireSequence(dt)
+		shoot:FireServer(currentViewModel.weapon.Hole.Position, currentViewModel.weapon.BarrelHole.Position)
+		currentModule:GenerateRecoil(currentModule.currentSprings.CameraRecoilSpring, dt)
+		currentModule:GenerateWeapRecoil(currentModule.currentSprings.WeaponLinearRecoilSpring, dt)
+		currentModule:GenerateWeapRotRecoil(currentModule.currentSprings.WeaponRotRecoilSpring, dt)
+		task.wait(60/currentModule.RPMs[currentModule.CurrentFireMode])
+		currentModule.currentSprings.CameraRecoilSpring:shove(Vector3.new())
+		currentModule.currentSprings.WeaponRotRecoilSpring:shove(Vector3.new())
+		currentModule.currentSprings.WeaponLinearRecoilSpring:shove(Vector3.new())
+	end
 	
 	--Main Run Service loop I'll clean this shit up later--
 	globals.RunService.RenderStepped:Connect(function(dt)
@@ -105,10 +118,27 @@ module.LoadModule = function()
 	--User Input--
 	globals.UserInputService.InputBegan:Connect(function(input, gpe)
 		if not gpe then
-			if input.KeyCode == Enum.KeyCode.LeftShift then -- Replace with player key bind in the future.
+			if input.KeyCode == Enum.KeyCode.LeftShift then -- Replace with player keybind in the future.
 				sprinting = true
 				char.Humanoid.WalkSpeed = currentModule.WalkSpeed
 			end
+
+			if input.KeyCode == Enum.KeyCode.V then --Fire Mode switching (Replace with player keybind in the future)--
+				shooting = false
+				for index, mode in next, currentModule.FireModes do
+					if currentModule.CurrentFireMode == mode then
+						local numOfFireModes = #currentModule.FireModes
+						if index < numOfFireModes then
+							currentModule.CurrentFireMode = currentModule.FireModes[index + 1]
+							break
+						elseif index == numOfFireModes then
+							currentModule.CurrentFireMode = currentModule.FireModes[1]
+							break
+						end
+					end
+				end
+			end
+
 			if input.UserInputType == Enum.UserInputType.MouseButton2 then
 				if currentWeapon ~= nil then
 					aiming = true
@@ -125,16 +155,13 @@ module.LoadModule = function()
 
 	globals.UserInputService.InputEnded:Connect(function(input, gpe)
 		if not gpe then
-			print("How the fuck")
 			if input.KeyCode == Enum.KeyCode.LeftShift then
-				print("It's been pressed")
 				sprinting = false
 				char.Humanoid.WalkSpeed = 16
 			end
 
 			if input.UserInputType == Enum.UserInputType.MouseButton2 then
 				if currentWeapon ~= nil then
-					print("Free dee dawg")
 					aiming = false
 					aimModifier = 1
 					usefulFunctions.tweenVal(currentModule.AimOut, currentWeaponValue.Lerps.Aim, 0)
@@ -147,32 +174,60 @@ module.LoadModule = function()
 		end
 	end)
 
-	
+	--Shooting--
 	globals.RunService.RenderStepped:Connect(function(dt)
 		if currentModule and currentWeapon then
 			if canShoot then
-				while true do
-					canShoot = false
-					if not shooting then
-						currentModule.HeatValue = 1
+				if currentModule.CurrentFireMode == "Auto" then --Auto--
+					while true do
+						canShoot = false
+						if not shooting then
+							currentModule.HeatValue = 1
+							canShoot = true
+							break
+						end
+						canShoot = false
+						fireSequence(dt)
+
 						canShoot = true
-						break
 					end
-					canShoot = false
-					shoot:FireServer(currentViewModel.weapon.Hole.Position, currentViewModel.weapon.BarrelHole.Position)
-					currentModule:GenerateRecoil(currentModule.currentSprings.CameraRecoilSpring, dt)
-					currentModule:GenerateWeapRecoil(currentModule.currentSprings.WeaponLinearRecoilSpring, dt)
-					currentModule:GenerateWeapRotRecoil(currentModule.currentSprings.WeaponRotRecoilSpring, dt)
-					task.wait(60/currentModule.RPM)
-					currentModule.currentSprings.CameraRecoilSpring:shove(Vector3.new())
-					currentModule.currentSprings.WeaponRotRecoilSpring:shove(Vector3.new())
-					currentModule.currentSprings.WeaponLinearRecoilSpring:shove(Vector3.new())
-					
-					canShoot = true
+				elseif currentModule.CurrentFireMode == "Semi" then --Semi--
+					if shooting then
+						canShoot = false
+						shooting = false
+						fireSequence(dt)
+						canShoot = true
+					end
+				elseif currentModule.CurrentFireMode == "Burst" then --Burst--
+					if shooting then
+						canShoot = false
+						for i = 1,3,1 do
+							if shooting == false then
+								break
+							end
+							fireSequence(dt)
+						end
+						task.wait(currentModule.BurstDelayTime)
+						shooting = false
+						canShoot = true
+					end
 				end
 			end
 		end
 	end)
+
+	--Gui Code--
+	--Temp--
+	local fireModeIndicatorGui = plrGui:WaitForChild("ScreenGui")
+	local label = fireModeIndicatorGui.FireModeIndicator
+	local lastName = label.Text
+	globals.RunService.Heartbeat:Connect(function()
+		if lastName ~= currentModule.CurrentFireMode then
+			lastName = currentModule.CurrentFireMode
+			label.Text = currentModule.CurrentFireMode
+		end
+	end)
+	--Temp--
 	
 end
 return module
