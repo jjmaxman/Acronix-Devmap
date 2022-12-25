@@ -18,6 +18,7 @@ local aimModifier = 1
 local charSpeed = 0
 
 local walking = false
+local sprinting = false
 local aiming = false
 local shooting = false
 local canShoot = true
@@ -104,6 +105,10 @@ module.LoadModule = function()
 	--User Input--
 	globals.UserInputService.InputBegan:Connect(function(input, gpe)
 		if not gpe then
+			if input.KeyCode == Enum.KeyCode.LeftShift then -- Replace with player key bind in the future.
+				sprinting = true
+				char.Humanoid.WalkSpeed = currentModule.WalkSpeed
+			end
 			if input.UserInputType == Enum.UserInputType.MouseButton2 then
 				if currentWeapon ~= nil then
 					aiming = true
@@ -120,8 +125,16 @@ module.LoadModule = function()
 
 	globals.UserInputService.InputEnded:Connect(function(input, gpe)
 		if not gpe then
+			print("How the fuck")
+			if input.KeyCode == Enum.KeyCode.LeftShift then
+				print("It's been pressed")
+				sprinting = false
+				char.Humanoid.WalkSpeed = 16
+			end
+
 			if input.UserInputType == Enum.UserInputType.MouseButton2 then
 				if currentWeapon ~= nil then
+					print("Free dee dawg")
 					aiming = false
 					aimModifier = 1
 					usefulFunctions.tweenVal(currentModule.AimOut, currentWeaponValue.Lerps.Aim, 0)

@@ -50,6 +50,7 @@ module.HeatValue = 1 --Higher = Lower Spread
 module.AimIn = .7
 module.AimOut = .5
 module.RPM = 780
+module.WalkSpeed = 21
 module.WeaponOffsetCF = weapon.CameraPart.CFrame:Inverse() * weapon.PrimaryPart.CFrame
 module.BulletVelocity = 3003
 module.AimOffsetCF = (aimPartOffset:Inverse() * module.WeaponOffsetCF):Inverse()

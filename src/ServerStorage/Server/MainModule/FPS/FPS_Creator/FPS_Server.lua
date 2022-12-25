@@ -32,17 +32,6 @@ module.LoadModule = function(plr, weaponInfo, remotesFolder)
 
 		local function onRayHit(cast, result: RaycastResult, velocity, bullet)
 			local char = result.Instance.Parent
-			local bulletHole = Instance.new("Part")
-			bulletHole.Size = Vector3.new(1,1,.001)
-			bulletHole.Position = result.Position
-			bulletHole.Orientation = bullet.Orientation
-			bulletHole.Parent = workspace.BulletFolder
-			bulletHole.Transparency = 0
-			bulletHole.Anchored = true
-			bulletHole.CanCollide = false
-			bulletHole.CanQuery = false
-			local texture = game.ServerStorage.GameInstances.BulletHoleTexture:Clone()
-			texture.Parent = bulletHole
 			if char:FindFirstChild("Humanoid") then
 				local humanoid = char:FindFirstChild("Humanoid")
 				local listName = usefulFunctions.GetInstanceWithPartialString(result.Instance, currentModule.Damage)
