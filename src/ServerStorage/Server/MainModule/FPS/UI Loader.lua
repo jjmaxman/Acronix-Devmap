@@ -13,7 +13,6 @@ end
 
 local module = {}
 function module.LoadModule() 
-    print("poo")
     --[[players.PlayerAdded:Connect(function(player)
         LoadGuis(player, true)
         player.CharacterAdded:Connect(function(char)
