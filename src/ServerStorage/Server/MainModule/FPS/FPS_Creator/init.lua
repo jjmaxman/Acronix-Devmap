@@ -32,6 +32,18 @@ module.LoadModule = function()
 		
 		local plrRemotesFolder = remotesFolder:Clone()
 		plrRemotesFolder.Parent = plr
+
+		local characterState = Instance.new("Folder")
+		characterState.Name = "CharacterState"
+		characterState.Parent = plr
+		
+		local stance = Instance.new("StringValue")
+		stance.Name = "Stance"
+		stance.Parent = characterState
+
+		local leaning = Instance.new("StringValue")
+		leaning.Name = "Leaning"
+		leaning.Parent = characterState
 		
 		fpsServer.LoadModule(plr, weaponInfo, plrRemotesFolder)
 		
