@@ -12,4 +12,5 @@ module.spring = module.spring
 module.FastCastRedux = module.Utilities.FastCastRedux
 module.Weapons = module.ReplicatedStorage.Weapons
 module.Client = module.ReplicatedStorage.Client
+module.CharacterAnimations = module.ReplicatedStorage.CharacterAnimations
 return module

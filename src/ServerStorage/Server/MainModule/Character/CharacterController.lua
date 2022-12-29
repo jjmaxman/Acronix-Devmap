@@ -11,6 +11,49 @@ function module.LoadModule()
             local leaning = characterState.Leaning
             local changeState = remotes.ChangeState
 
+            plr.CharacterAdded:Connect(function(char)
+                repeat task.wait() until char.Parent ~= nil
+                local humanoid = char:WaitForChild("Humanoid")
+                if humanoid then
+                    local leaningTracks = {
+                        ["LeanRightTrack"] = humanoid.Animator:LoadAnimation(globals.CharacterAnimations.LeanRight);
+                        ["LeanLeftTrack"] = humanoid.Animator:LoadAnimation(globals.CharacterAnimations.LeanLeft);
+                    }
+
+                    local stanceTracks = {
+                        ["CrouchingTrack"] = humanoid.Animator:LoadAnimation(globals.CharacterAnimations.Crouch);
+                        ["ProneTrack"] = humanoid.Animator:LoadAnimation(globals.CharacterAnimations.Prone);
+                    }
+
+                    local animationHandler = function(newStance, animationsTable)
+                        task.spawn(function()
+                            for _, track in pairs(animationsTable) do
+                                track:Stop()
+                            end
+                        end)
+                        if newStance ~= "" and newStance ~= "Sprinting" then
+                            animationsTable[newStance.."Track"]:Play()
+                        end
+                    end
+
+                    local charStateChanges = {
+                        ["Stance"] = stance.Changed:Connect(function(newStance)
+                            animationHandler(newStance, stanceTracks)
+                        end);
+
+                        ["Leaning"] =  leaning.Changed:Connect(function(newStance)
+                            animationHandler(newStance, leaningTracks)
+                        end);
+                    }
+
+                    humanoid.Died:Connect(function()
+                        for _, connections in pairs(charStateChanges) do
+                            connections:Disconnect()
+                        end
+                    end) 
+                end
+            end)
+
             changeState.OnServerEvent:Connect(function(plr, action)
                 local char = plr.Character
                 if char ~= nil and char:FindFirstChild("Humanoid") then
@@ -59,17 +102,11 @@ function module.LoadModule()
                             end
                         end
                     end
+                else
+                    stance.Value = ""
+                    leaning.Value = ""
                 end
             end)
-
-            stance.Changed:Connect(function(newStance)
-                
-            end)
-
-            leaning.Changed:Connect(function(newStance)
-                
-            end)
-
         end)
     end)
 end
