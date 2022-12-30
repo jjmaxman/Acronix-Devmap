@@ -1,4 +1,5 @@
 local globals = require(game:GetService("ReplicatedStorage").Utilities.Globals)
+local TweenService = game:GetService("TweenService")
 local camera = workspace.CurrentCamera
 local plr = globals.Players.LocalPlayer
 local remotesFolder = plr:WaitForChild("Remotes")
@@ -6,14 +7,20 @@ local characterState = plr:WaitForChild("CharacterState")
 local stance = characterState.Stance
 local leaning = characterState.Leaning
 local changeState = remotesFolder.ChangeState
+local headMovement = remotesFolder:WaitForChild("HeadMovement")
 local userInputList = {}
 
 local module = {}
 function module.LoadModule()
     task.spawn(function()
         plr.CharacterAdded:Connect(function(char)
-            print("Character Has been added")
             local humanoid = char:WaitForChild("Humanoid")
+            local humanoidRootPart = char:WaitForChild("HumanoidRootPart")
+            local lowerTorso = char:WaitForChild("LowerTorso")
+            local head = char:WaitForChild("Head")
+            local neck: Motor6D = head.Neck
+
+            --User input--
             local inputBegan = globals.UserInputService.InputBegan:Connect(function(input, gpe)
                 if not gpe then
                     --Make sure these get replaced with player's custom keybinds--
@@ -47,6 +54,18 @@ function module.LoadModule()
                 end
             end)
 
+            userInputList["HeadMovement"] = globals.RunService.RenderStepped:Connect(function(dt)
+                local cameraDir = camera.CFrame.LookVector - Vector3.new(0,math.rad(lowerTorso.Orientation.X),0)
+                neck.C0 = CFrame.new(0,.8,0) * CFrame.Angles(cameraDir.Y,0,0)
+            end)
+
+            task.spawn(function()
+                while humanoid.Health > 0 do
+                    headMovement:FireServer(neck.C0)
+                    task.wait(.075)
+                end
+            end)
+
             userInputList["InputBegan"] = inputBegan
             userInputList["InputEnded"] = inputEnded
 
@@ -57,6 +76,12 @@ function module.LoadModule()
                 end
             end)
         end)
+    end)
+
+    headMovement.OnClientEvent:Connect(function(neck, rotation)
+        local tween = TweenService:Create(neck, TweenInfo.new(.25, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {C0 = rotation})
+
+        tween:Play()
     end)
 end
 return module

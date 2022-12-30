@@ -10,6 +10,7 @@ function module.LoadModule()
             local stance = characterState.Stance
             local leaning = characterState.Leaning
             local changeState = remotes.ChangeState
+            local headMovement = remotes.HeadMovement
 
             plr.CharacterAdded:Connect(function(char)
                 repeat task.wait() until char.Parent ~= nil
@@ -107,6 +108,18 @@ function module.LoadModule()
                     leaning.Value = ""
                 end
             end)
+
+            headMovement.OnServerEvent:Connect(function(plr, rotation)
+                    print("Hello??")
+                    for _, player in ipairs(globals.Players:GetChildren()) do
+                        if player ~= plr then
+                            if player:FindFirstChild("Remotes") and player.Remotes:FindFirstChild("HeadMovement") then
+                                player.Remotes.HeadMovement:FireClient(player, plr.Character.Head.Neck, rotation)
+                            end
+                        end
+                    end
+            end)
+
         end)
     end)
 end
