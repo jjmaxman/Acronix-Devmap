@@ -52,7 +52,7 @@ module.LoadModule = function(plr, weaponInfo, remotesFolder)
 		castParams.FilterDescendantsInstances = {workspace.BulletFolder, workspace.Terrain, plr.Character or plr.CharacterAdded:Wait()}
 		castParams.IgnoreWater = true
 
-		--fastCast.VisualizeCasts = true
+		fastCast.VisualizeCasts = true
 
 		behaivior.RaycastParams = castParams
 		behaivior.AutoIgnoreContainer = true

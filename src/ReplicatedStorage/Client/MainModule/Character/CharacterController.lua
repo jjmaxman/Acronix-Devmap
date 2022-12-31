@@ -18,7 +18,16 @@ function module.LoadModule()
             local humanoidRootPart = char:WaitForChild("HumanoidRootPart")
             local lowerTorso = char:WaitForChild("LowerTorso")
             local head = char:WaitForChild("Head")
+            local rightUpperArm = char:WaitForChild("RightUpperArm")
+            local leftUpperArm = char:WaitForChild("LeftUpperArm")
+
+            local rightShoulder: Motor6D = rightUpperArm.RightShoulder
+            local leftShoulder: Motor6D = leftUpperArm.LeftShoulder
             local neck: Motor6D = head.Neck
+
+            --Prelim animations (Might change this later)--
+            local weaponHoldTrack = humanoid.Animator:LoadAnimation(globals.CharacterAnimations.WeaponHold)
+            weaponHoldTrack:Play()
 
             --User input--
             local inputBegan = globals.UserInputService.InputBegan:Connect(function(input, gpe)

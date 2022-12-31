@@ -16,7 +16,7 @@ module.LoadModule = function()
 		
 		local primary = Instance.new("StringValue")
 		primary.Name = "Primary"
-		primary.Value = "M4"
+		primary.Value = "HK416"
 		primary:SetAttribute("Ammo", 0)
 		primary.Parent = weaponInfo
 		
@@ -55,7 +55,7 @@ module.LoadModule = function()
 			end)
 		end)
 		
-		task.wait(5)
+		task.wait(3)
 		
 		plr:LoadCharacter()
 		

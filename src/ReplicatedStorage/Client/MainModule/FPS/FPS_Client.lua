@@ -44,8 +44,8 @@ local module = {}
 module.LoadModule = function()
 	task.spawn(function()
 		
-			local char
-			plr.CharacterAdded:Connect(function(character)
+		local char
+		plr.CharacterAdded:Connect(function(character)
 			char = character
 			currentWeaponValue = weaponInfo:FindFirstChild(currentWeapon.Value)
 			currentModule = require(weaponsFolder:FindFirstChild(currentWeaponValue.Value).Module.MainModule)
@@ -55,6 +55,7 @@ module.LoadModule = function()
 				currentModule.EquipViewModel(currentViewModel.Humanoid)
 				humanoidRootpart = char:WaitForChild("HumanoidRootPart")
 			end
+			remotes.EquipWeapon:FireServer(currentWeaponValue.Value, currentWeapon.Value)
 			
 			char:WaitForChild("Humanoid").Running:Connect(function(speed)
 				--modifier = usefulFunctions.lerpNumber(modifier,(speed/160)*aimModifier,1)

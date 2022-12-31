@@ -11,6 +11,7 @@ function module.LoadModule()
             local leaning = characterState.Leaning
             local changeState = remotes.ChangeState
             local headMovement = remotes.HeadMovement
+            local equipWeapon = remotes.EquipWeapon
 
             plr.CharacterAdded:Connect(function(char)
                 repeat task.wait() until char.Parent ~= nil
@@ -110,7 +111,6 @@ function module.LoadModule()
             end)
 
             headMovement.OnServerEvent:Connect(function(plr, rotation)
-                    print("Hello??")
                     for _, player in ipairs(globals.Players:GetChildren()) do
                         if player ~= plr then
                             if player:FindFirstChild("Remotes") and player.Remotes:FindFirstChild("HeadMovement") then
@@ -118,6 +118,29 @@ function module.LoadModule()
                             end
                         end
                     end
+            end)
+
+            equipWeapon.OnServerEvent:Connect(function(plr, weaponName, weaponSlot) --Security concern: Figure this shit out on your own (Arg 2)--
+                local weaponInfo = plr.WeaponInfo
+                local weaponModel
+                if weaponInfo:FindFirstChild(weaponSlot) and weaponInfo:FindFirstChild(weaponSlot).Value == weaponName then
+                    weaponModel = globals.Weapons:FindFirstChild(weaponName)["3PModel"]["3PModel"]
+                else
+                    return
+                end
+                local char = plr.Character
+                if char ~= nil and char.Parent ~= nil and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
+                    local rightHand = char:WaitForChild("RightHand")
+                    local newWeapon: Model = weaponModel:Clone()
+                    newWeapon:PivotTo(rightHand.CFrame)
+                    newWeapon.Parent = char
+                    local weld = Instance.new("Weld")
+                    weld.Part0 = rightHand
+                    weld.Part1 = newWeapon.PrimaryPart
+                    weld.C0 = CFrame.Angles(math.rad(-90),0,0) * CFrame.new(-.25,0,-.4)
+                    weld.Parent = rightHand
+                    
+                end
             end)
 
         end)
