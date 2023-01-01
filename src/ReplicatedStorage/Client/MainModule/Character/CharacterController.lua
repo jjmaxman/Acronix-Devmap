@@ -1,4 +1,5 @@
 local globals = require(game:GetService("ReplicatedStorage").Utilities.Globals)
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local camera = workspace.CurrentCamera
 local plr = globals.Players.LocalPlayer
@@ -24,6 +25,15 @@ function module.LoadModule()
             local rightShoulder: Motor6D = rightUpperArm.RightShoulder
             local leftShoulder: Motor6D = leftUpperArm.LeftShoulder
             local neck: Motor6D = head.Neck
+
+            -- Character Rotation (Attempting to fix roblox's default rotation) --
+            userInputList["CharRotation"] = RunService.RenderStepped:Connect(function(dt)
+                
+                local _, y = camera.CFrame.Rotation:ToEulerAnglesYXZ()
+
+                humanoidRootPart.CFrame = CFrame.new(humanoidRootPart.Position) * CFrame.Angles(0,y,0)
+
+            end)
 
             --Prelim animations (Might change this later)--
             local weaponHoldTrack = humanoid.Animator:LoadAnimation(globals.CharacterAnimations.WeaponHold)
