@@ -11,8 +11,8 @@ function module.lerpNumber(a, b, t)
 	return a + (b - a) * t
 end
 
-function module.tweenVal(tweenTime,valueToTween,newVal,isFancy)
-	local tween = tweenService:Create(valueToTween, TweenInfo.new(tweenTime, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Value = newVal})
+function module.tweenVal(tweenTime,valueToTween,newVal,easingStyle)
+	local tween = tweenService:Create(valueToTween, TweenInfo.new(tweenTime, easingStyle, Enum.EasingDirection.Out), {Value = newVal})
 	tween:Play()
 end
 
