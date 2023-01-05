@@ -99,7 +99,7 @@ module.LoadModule = function()
 		globals.RunService.RenderStepped:Connect(function(dt)
 			if currentViewModel ~= nil then
 				local delta = globals.UserInputService:GetMouseDelta()
-				currentModule.currentSprings.SwaySpring:shove(Vector3.new(delta.X/600,delta.Y/600))
+				currentModule.currentSprings.SwaySpring:shove(Vector3.new(delta.X/400,delta.Y/400))
 
 
 				local camLean = springs.LeanSpring:update(dt)
@@ -116,13 +116,17 @@ module.LoadModule = function()
 				local hRootDelta = humanoidRootPart.CFrame:Inverse() * oldHRPpos
 				springs.MovementRot:shove(hRootDelta)
 				local answer = springs.MovementRot:update(dt)
-				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.Angles(0,0,answer.X/4))
+				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.Angles(-answer.Z/6,0,answer.X/4))
 				oldHRPpos = humanoidRootPart.Position
 				
 				if walking then
 					local camBob = Vector3.new(math.rad(.1* math.sin(tick()*10)),0,math.rad(.1*math.sin(tick()*10)))*dt*60
 					springs.WalkSpring:shove(camBob)
-				else
+					
+				elseif sprinting then
+					local camBob = Vector3.new(math.rad(.3* math.sin(tick()*14)),0,math.rad(.3*math.sin(tick()*14)))*dt*60
+					springs.WalkSpring:shove(camBob)
+				elseif not walking and not sprinting then
 					local camBob = Vector3.new(0,0,0)
 					springs.WalkSpring:shove(camBob)
 				end
