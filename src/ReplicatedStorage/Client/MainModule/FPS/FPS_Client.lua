@@ -41,6 +41,7 @@ local springs = {
 	["StanceSpring"] = springModule.create();
 	["WalkSpring"] = springModule.create();
 	["MovementRot"] = springModule.create();
+	["CollisionSpring"] = springModule.create();
 }
 
 
@@ -93,9 +94,14 @@ module.LoadModule = function()
 			currentModule.currentSprings.WeaponLinearRecoilSpring:shove(Vector3.new())
 		end
 
-		--Main Run Service loop I'll clean this shit up later--
+
 		repeat task.wait() until humanoidRootPart ~= nil
 		local oldHRPpos = humanoidRootPart.CFrame
+
+		local collisionsDetectionParams = RaycastParams.new()
+		collisionsDetectionParams.FilterDescendantsInstances = {globals.Camera, char}
+
+		--Main Run Service loop I'll clean this shit up later--
 		globals.RunService.RenderStepped:Connect(function(dt)
 			if currentViewModel ~= nil then
 				local delta = globals.UserInputService:GetMouseDelta()
@@ -139,6 +145,7 @@ module.LoadModule = function()
 
 
 				aimCF = currentWeaponValue.Offsets.AimOffsetCF.Value.Position * currentWeaponValue.Lerps.Aim.Value --Aiming
+				local camAimCF = Vector3.new(0,0,math.rad(-7))*currentWeaponValue.Lerps.Aim.Value -- Camera Aiming
 				sprintV3Rot = currentWeaponValue.Offsets.SprintOffsetV3Rot.Value * currentWeaponValue.Lerps.Sprint.Value
 				sprintV3Lin = currentWeaponValue.Offsets.SprintOffsetV3Lin.Value * currentWeaponValue.Lerps.Sprint.Value
 
@@ -156,6 +163,8 @@ module.LoadModule = function()
 				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(aimCF.X,aimCF.Y,aimCF.Z))
 				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.Angles(sprintV3Rot.X,sprintV3Rot.Y,sprintV3Rot.Z) * CFrame.new(sprintV3Lin.X, sprintV3Lin.Y, sprintV3Lin.Z))
 
+				globals.Camera.CFrame = globals.Camera.CFrame * CFrame.Angles(0,0,camAimCF.Z)
+
 				if walking then
 
 				elseif not walking then
@@ -163,6 +172,24 @@ module.LoadModule = function()
 					local idleSpring = currentModule.currentSprings.IdleSpring:update(dt)
 					currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(idleSpring.x,idleSpring.y,0))
 				end
+
+				--Viewmodel Collision detection--
+				local collisionCast = workspace:Raycast(currentViewModel.weapon.Back.Position, (currentViewModel.weapon.BarrelHole.Position - currentViewModel.weapon.Back.Position), collisionsDetectionParams)
+				
+				if collisionCast then
+					if sprinting ~= true then
+						local castDist = collisionCast.Distance
+						local holeDist = (currentViewModel.weapon.BarrelHole.Position - currentViewModel.weapon.Back.Position).Magnitude
+						if castDist < holeDist then
+							local dist = castDist - holeDist
+							local vector = Vector3.new(0,1,60)
+							springs.CollisionSpring:shove(vector)
+						end
+					end
+				end
+
+				local updatedCollisionSpring = springs.CollisionSpring:update(dt)
+				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(0,0,updatedCollisionSpring.Y) * CFrame.Angles(0,math.rad(updatedCollisionSpring.Z),0))
 			end
 		end)
 
