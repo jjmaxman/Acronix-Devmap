@@ -132,6 +132,9 @@ module.LoadModule = function()
 				elseif sprinting then
 					local camBob = Vector3.new(math.rad(.3* math.sin(tick()*14)),0,math.rad(.3*math.sin(tick()*14)))*dt*60
 					springs.WalkSpring:shove(camBob)
+					currentModule.currentSprings.IdleSpring:shove(Vector3.new(usefulFunctions.getBobbing(10, 27, modifier), usefulFunctions.getBobbing(2.5,12,modifier), usefulFunctions.getBobbing(5,27,modifier)))
+					local idleSpring = currentModule.currentSprings.IdleSpring:update(dt)
+					currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(idleSpring.x,idleSpring.y,0))
 				elseif not walking and not sprinting then
 					local camBob = Vector3.new(0,0,0)
 					springs.WalkSpring:shove(camBob)
@@ -167,8 +170,8 @@ module.LoadModule = function()
 
 				if walking then
 
-				elseif not walking then
-					currentModule.currentSprings.IdleSpring:shove(Vector3.new(usefulFunctions.getBobbing(5, 1, modifier), usefulFunctions.getBobbing(2.5,4,modifier), usefulFunctions.getBobbing(5,4,modifier)))
+				elseif not walking and not sprinting then
+					currentModule.currentSprings.IdleSpring:shove(Vector3.new(0,0,0))
 					local idleSpring = currentModule.currentSprings.IdleSpring:update(dt)
 					currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(idleSpring.x,idleSpring.y,0))
 				end
@@ -180,8 +183,12 @@ module.LoadModule = function()
 					if sprinting ~= true then
 						local castDist = collisionCast.Distance
 						local holeDist = (currentViewModel.weapon.BarrelHole.Position - currentViewModel.weapon.Back.Position).Magnitude
-						if castDist < holeDist then
+						if castDist <= holeDist and castDist > 6 then
 							local dist = castDist - holeDist
+							local vector = Vector3.new(0,-dist,0)
+							--Vector3.new(0,1,60) Rotation thingy lol
+							springs.CollisionSpring:shove(vector)
+						elseif castDist <= holeDist and castDist < 6 then
 							local vector = Vector3.new(0,1,60)
 							springs.CollisionSpring:shove(vector)
 						end

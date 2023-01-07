@@ -7,6 +7,10 @@ function module.getBobbing(addition, speed, modifier)
 	return math.sin(tick()*addition*speed)*modifier
 end
 
+function module.proBobbing(intensity, speed, modifier)
+	return intensity * math.sin(tick()*speed*modifier)
+end
+
 function module.lerpNumber(a, b, t)
 	return a + (b - a) * t
 end
