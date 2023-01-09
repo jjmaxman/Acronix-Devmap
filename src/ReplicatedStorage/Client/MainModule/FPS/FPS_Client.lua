@@ -104,8 +104,11 @@ module.LoadModule = function()
 		--Main Run Service loop I'll clean this shit up later--
 		globals.RunService.RenderStepped:Connect(function(dt)
 			if currentViewModel ~= nil then
+				local weapLin, weapRot, camRot = currentModule.currentSprings:UpdateRecoilSprings(dt)
+
 				local delta = globals.UserInputService:GetMouseDelta()
 				currentModule.currentSprings.SwaySpring:shove(Vector3.new(delta.X/400,delta.Y/400))
+				globals.Camera.CFrame = globals.Camera.CFrame * CFrame.Angles(camRot.X,camRot.Y,camRot.Z)
 
 
 				local camLean = springs.LeanSpring:update(dt)
@@ -119,32 +122,32 @@ module.LoadModule = function()
 					*movementRotCF
 				)
 				
+				modifier = usefulFunctions.lerpNumber(modifier, (charSpeed/16)*aimModifier, 1)
+
 				local hRootDelta = humanoidRootPart.CFrame:Inverse() * oldHRPpos
 				springs.MovementRot:shove(hRootDelta)
 				local answer = springs.MovementRot:update(dt)
+				globals.Camera.CFrame = globals.Camera.CFrame * CFrame.Angles(0,0,answer.X/4)
 				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.Angles(-answer.Z/6,0,answer.X/4))
 				oldHRPpos = humanoidRootPart.Position
 				
 				if walking then
 					local camBob = Vector3.new(math.rad(.1* math.sin(tick()*10)),0,math.rad(.1*math.sin(tick()*10)))*dt*60
 					springs.WalkSpring:shove(camBob)
-					
+					local bobMovement = Vector3.new(usefulFunctions.getBobbing(5, 1, modifier/3), usefulFunctions.getBobbing(2.5,4,modifier/3), usefulFunctions.getBobbing(5,4,modifier/3))
+					currentModule.currentSprings.BobSpring:shove(bobMovement*dt*60)
 				elseif sprinting then
 					local camBob = Vector3.new(math.rad(.3* math.sin(tick()*14)),0,math.rad(.3*math.sin(tick()*14)))*dt*60
 					springs.WalkSpring:shove(camBob)
-					currentModule.currentSprings.IdleSpring:shove(Vector3.new(usefulFunctions.getBobbing(10, 27, modifier), usefulFunctions.getBobbing(2.5,12,modifier), usefulFunctions.getBobbing(5,27,modifier)))
-					local idleSpring = currentModule.currentSprings.IdleSpring:update(dt)
-					currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(idleSpring.x,idleSpring.y,0))
+					currentModule.currentSprings.IdleSpring:shove(Vector3.new(usefulFunctions.proBobbing(.25, 7, 1), usefulFunctions.proBobbing(.25,14,1), usefulFunctions.proBobbing(.1,1,1))*dt*60)
 				elseif not walking and not sprinting then
 					local camBob = Vector3.new(0,0,0)
 					springs.WalkSpring:shove(camBob)
+					currentModule.currentSprings.BobSpring:shove(Vector3.new(0,0,0))
 				end
 
 				local camBobupdated = springs.WalkSpring:update(dt)
 				globals.Camera.CFrame = globals.Camera.CFrame * CFrame.Angles(camBobupdated.X,0,camBobupdated.Z)
-
-
-				local weapLin, weapRot, camRot = currentModule.currentSprings:UpdateRecoilSprings(dt)
 
 
 				aimCF = currentWeaponValue.Offsets.AimOffsetCF.Value.Position * currentWeaponValue.Lerps.Aim.Value --Aiming
@@ -152,21 +155,19 @@ module.LoadModule = function()
 				sprintV3Rot = currentWeaponValue.Offsets.SprintOffsetV3Rot.Value * currentWeaponValue.Lerps.Sprint.Value
 				sprintV3Lin = currentWeaponValue.Offsets.SprintOffsetV3Lin.Value * currentWeaponValue.Lerps.Sprint.Value
 
-				modifier = usefulFunctions.lerpNumber(modifier, (charSpeed/160)*aimModifier, 1)
-
 				local swayer = currentModule.currentSprings.SwaySpring:update(dt)
-				local bobMovement = Vector3.new(usefulFunctions.getBobbing(5, 1, modifier), usefulFunctions.getBobbing(2.5,4,modifier), usefulFunctions.getBobbing(5,4,modifier))
-				currentModule.currentSprings.BobSpring:shove(bobMovement*dt*60)
-				local walkCycle = currentModule.currentSprings.BobSpring:update(dt)
-				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(walkCycle.x/2,walkCycle.y/2,0)) --* CFrame.Angles(0,walkCycle.y/2, walkCycle.x/2)) No clue how I'm gonna impliment angles yet
 
-				globals.Camera.CFrame = globals.Camera.CFrame * CFrame.Angles(camRot.X,camRot.Y,camRot.Z)
+				local idleSpring = currentModule.currentSprings.IdleSpring:update(dt)
+				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(idleSpring.x,idleSpring.y,idleSpring.z))
+				local walkCycle = currentModule.currentSprings.BobSpring:update(dt)
+				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(walkCycle.x/2,walkCycle.y/2,0))
+
+				globals.Camera.CFrame = globals.Camera.CFrame * CFrame.Angles(0,0,camAimCF.Z)
 				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(weapLin.X,weapLin.Y,weapLin.Z) * CFrame.Angles(weapRot.X,weapRot.Y,weapRot.Z))
 				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.Angles(-swayer.y,-swayer.x,swayer.y))
 				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(aimCF.X,aimCF.Y,aimCF.Z))
 				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.Angles(sprintV3Rot.X,sprintV3Rot.Y,sprintV3Rot.Z) * CFrame.new(sprintV3Lin.X, sprintV3Lin.Y, sprintV3Lin.Z))
 
-				globals.Camera.CFrame = globals.Camera.CFrame * CFrame.Angles(0,0,camAimCF.Z)
 
 				if walking then
 
@@ -181,22 +182,18 @@ module.LoadModule = function()
 				
 				if collisionCast then
 					if sprinting ~= true then
+						aiming = false
 						local castDist = collisionCast.Distance
 						local holeDist = (currentViewModel.weapon.BarrelHole.Position - currentViewModel.weapon.Back.Position).Magnitude
-						if castDist <= holeDist and castDist > 6 then
-							local dist = castDist - holeDist
-							local vector = Vector3.new(0,-dist,0)
-							--Vector3.new(0,1,60) Rotation thingy lol
-							springs.CollisionSpring:shove(vector)
-						elseif castDist <= holeDist and castDist < 6 then
-							local vector = Vector3.new(0,1,60)
+						if castDist < holeDist then
+							local vector = Vector3.new(0,1.5,60)
 							springs.CollisionSpring:shove(vector)
 						end
 					end
 				end
 
 				local updatedCollisionSpring = springs.CollisionSpring:update(dt)
-				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(0,0,updatedCollisionSpring.Y) * CFrame.Angles(0,math.rad(updatedCollisionSpring.Z),0))
+				currentViewModel:PivotTo(currentViewModel.PrimaryPart.CFrame * CFrame.new(0,0,updatedCollisionSpring.Y) * CFrame.Angles(math.rad(updatedCollisionSpring.Z),0,0))
 			end
 		end)
 
