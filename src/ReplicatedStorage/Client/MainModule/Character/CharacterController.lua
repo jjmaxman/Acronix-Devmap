@@ -26,13 +26,19 @@ function module.LoadModule()
             local leftShoulder: Motor6D = leftUpperArm.LeftShoulder
             local neck: Motor6D = head.Neck
 
-            -- Character Rotation (Attempting to fix roblox's default rotation) --
+            -- Character Rotation (Attempting to fix roblox's default rotation (SUCCESS :D)) --
             userInputList["CharRotation"] = RunService.RenderStepped:Connect(function(dt)
-                
                 local _, y = camera.CFrame.Rotation:ToEulerAnglesYXZ()
-
                 humanoidRootPart.CFrame = CFrame.new(humanoidRootPart.Position) * CFrame.Angles(0,y,0)
+            end)
 
+            --Jump Limiter--
+            humanoid.StateChanged:Connect(function(oldState, newState)
+                if newState == Enum.HumanoidStateType.Jumping then
+                    humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+                    task.wait(2)
+                    humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+                end
             end)
 
             --Prelim animations (Might change this later)--
@@ -73,6 +79,14 @@ function module.LoadModule()
                 end
             end)
 
+            characterState.Stance.Changed:Connect(function(newStance)
+                if newStance ~= "" and newStance ~= "Sprinting" then
+                    humanoid.JumpHeight = 0
+                elseif newStance == "" or newStance == "Sprinting" then
+                    humanoid.JumpHeight = 3
+                end
+            end)
+
             userInputList["HeadMovement"] = globals.RunService.RenderStepped:Connect(function(dt)
                 local cameraDir = camera.CFrame.LookVector - Vector3.new(0,math.rad(lowerTorso.Orientation.X),0)
                 neck.C0 = CFrame.new(0,.8,0) * CFrame.Angles(cameraDir.Y,0,0)
@@ -99,7 +113,6 @@ function module.LoadModule()
 
     headMovement.OnClientEvent:Connect(function(neck, rotation)
         local tween = TweenService:Create(neck, TweenInfo.new(.25, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {C0 = rotation})
-
         tween:Play()
     end)
 end

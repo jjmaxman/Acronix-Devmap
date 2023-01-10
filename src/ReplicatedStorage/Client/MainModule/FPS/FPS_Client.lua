@@ -26,6 +26,7 @@ local sprinting = false
 local aiming = false
 local shooting = false
 local canShoot = true
+local VMcollision = false
 
 local weaponWalkingMovementCF = CFrame.new()
 local idleSwayCF = CFrame.new()
@@ -92,6 +93,18 @@ module.LoadModule = function()
 			currentModule.currentSprings.CameraRecoilSpring:shove(Vector3.new())
 			currentModule.currentSprings.WeaponRotRecoilSpring:shove(Vector3.new())
 			currentModule.currentSprings.WeaponLinearRecoilSpring:shove(Vector3.new())
+		end
+
+		local changeAimState = function(bool)
+			if bool == true then
+				aiming = true
+				aimModifier = .35
+				usefulFunctions.tweenVal(currentModule.AimIn, currentWeaponValue.Lerps.Aim, 1, Enum.EasingStyle.Quint)
+			elseif bool == false then
+				aiming = false
+				aimModifier = 1
+				usefulFunctions.tweenVal(currentModule.AimOut, currentWeaponValue.Lerps.Aim, 0, Enum.EasingStyle.Quint)
+			end
 		end
 
 
@@ -182,14 +195,21 @@ module.LoadModule = function()
 				
 				if collisionCast then
 					if sprinting ~= true then
-						aiming = false
 						local castDist = collisionCast.Distance
 						local holeDist = (currentViewModel.weapon.BarrelHole.Position - currentViewModel.weapon.Back.Position).Magnitude
 						if castDist < holeDist then
-							local vector = Vector3.new(0,1.5,60)
+							if aiming ~= false then
+								changeAimState(false)
+							end
+							VMcollision = true
+							local vector = Vector3.new(0,.5,60)
 							springs.CollisionSpring:shove(vector)
+						else
+							VMcollision = false
 						end
 					end
+				else
+					VMcollision = false
 				end
 
 				local updatedCollisionSpring = springs.CollisionSpring:update(dt)
@@ -224,11 +244,24 @@ module.LoadModule = function()
 					end
 				end
 
+				if input.KeyCode == Enum.KeyCode.T then
+					for index, mode in next, currentModule.AimModes do
+						if currentModule.CurrentAimMode == mode then
+							local numOfAimModes = #currentModule.AimModes
+							if index < numOfAimModes then 
+								currentModule.CurrentAimModeMode = currentModule.AimModes[index + 1]
+								break
+							else
+								currentModule.CurrentAimMode = currentModule.AimModes[index + 1]
+								break
+							end
+						end
+					end
+				end
+
 				if input.UserInputType == Enum.UserInputType.MouseButton2 then
-					if currentWeapon ~= nil then
-						aiming = true
-						aimModifier = .35
-						usefulFunctions.tweenVal(currentModule.AimIn, currentWeaponValue.Lerps.Aim, 1, Enum.EasingStyle.Quint)
+					if currentWeapon ~= nil and VMcollision ~= true then
+						changeAimState(true)
 					end
 				end
 
@@ -247,10 +280,8 @@ module.LoadModule = function()
 				end
 
 				if input.UserInputType == Enum.UserInputType.MouseButton2 then
-					if currentWeapon ~= nil then
-						aiming = false
-						aimModifier = 1
-						usefulFunctions.tweenVal(currentModule.AimOut, currentWeaponValue.Lerps.Aim, 0, Enum.EasingStyle.Quint)
+					if currentWeapon ~= nil and VMcollision ~= true then
+						changeAimState(false)
 					end
 				end
 
