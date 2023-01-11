@@ -32,6 +32,7 @@ local weaponWalkingMovementCF = CFrame.new()
 local idleSwayCF = CFrame.new()
 local movementRotCF = CFrame.new()
 local lastHumanoidRootCF = CFrame.new()
+local aimOffsetCF = CFrame.new()
 local aimCF = Vector3.new()
 local sprintV3Lin = Vector3.new()
 local sprintV3Rot = Vector3.new
@@ -62,6 +63,9 @@ module.LoadModule = function()
 			if currentModule:CreateOffsets(currentWeaponValue, currentModule:GetOffsets()) and currentModule:CreateLerps(currentWeaponValue, currentModule.Lerps) then
 				currentViewModel = weaponsFolder:FindFirstChild(currentWeaponValue.Value).Model.Weapon:Clone()
 				currentViewModel.Parent = globals.Camera
+				
+				aimOffsetCF = currentWeaponValue.Offsets.AimOffsetCF.Value
+
 				local animationController = currentModule.AnimationController.Create(currentViewModel.AnimationController)
 				animationController.AnimationController = currentViewModel.AnimationController
 				animationTracks = animationController:LoadAnimations()
@@ -105,6 +109,22 @@ module.LoadModule = function()
 				aimModifier = 1
 				usefulFunctions.tweenVal(currentModule.AimOut, currentWeaponValue.Lerps.Aim, 0, Enum.EasingStyle.Quint)
 			end
+		end
+
+		local function WeaponModeSwitching(currentModeString, availableModes)
+			for index, mode in next, availableModes do
+				if currentModule[currentModeString] == mode then
+					local numOfModes = #availableModes
+					if index < numOfModes then
+						currentModule[currentModeString] = availableModes[index + 1]
+						break
+					elseif index == numOfModes then
+						currentModule[currentModeString] = availableModes[1]
+						break
+					end
+				end
+			end
+			
 		end
 
 
@@ -162,8 +182,8 @@ module.LoadModule = function()
 				local camBobupdated = springs.WalkSpring:update(dt)
 				globals.Camera.CFrame = globals.Camera.CFrame * CFrame.Angles(camBobupdated.X,0,camBobupdated.Z)
 
-
-				aimCF = currentWeaponValue.Offsets.AimOffsetCF.Value.Position * currentWeaponValue.Lerps.Aim.Value --Aiming
+				print(aimOffsetCF)
+				aimCF = aimOffsetCF.Position + aimOffsetCF.Rotation + currentWeaponValue.Lerps.Aim.Value --Aiming
 				local camAimCF = Vector3.new(0,0,math.rad(-7))*currentWeaponValue.Lerps.Aim.Value -- Camera Aiming
 				sprintV3Rot = currentWeaponValue.Offsets.SprintOffsetV3Rot.Value * currentWeaponValue.Lerps.Sprint.Value
 				sprintV3Lin = currentWeaponValue.Offsets.SprintOffsetV3Lin.Value * currentWeaponValue.Lerps.Sprint.Value
@@ -230,33 +250,11 @@ module.LoadModule = function()
 
 				if input.KeyCode == Enum.KeyCode.V then --Fire Mode switching (Replace with player keybind in the future)--
 					shooting = false
-					for index, mode in next, currentModule.FireModes do
-						if currentModule.CurrentFireMode == mode then
-							local numOfFireModes = #currentModule.FireModes
-							if index < numOfFireModes then
-								currentModule.CurrentFireMode = currentModule.FireModes[index + 1]
-								break
-							elseif index == numOfFireModes then
-								currentModule.CurrentFireMode = currentModule.FireModes[1]
-								break
-							end
-						end
-					end
+					WeaponModeSwitching("CurrentFireMode", currentModule.FireModes)
 				end
 
 				if input.KeyCode == Enum.KeyCode.T then
-					for index, mode in next, currentModule.AimModes do
-						if currentModule.CurrentAimMode == mode then
-							local numOfAimModes = #currentModule.AimModes
-							if index < numOfAimModes then 
-								currentModule.CurrentAimModeMode = currentModule.AimModes[index + 1]
-								break
-							else
-								currentModule.CurrentAimMode = currentModule.AimModes[index + 1]
-								break
-							end
-						end
-					end
+					WeaponModeSwitching("CurrentAimMode", currentModule.AimModes)
 				end
 
 				if input.UserInputType == Enum.UserInputType.MouseButton2 then
