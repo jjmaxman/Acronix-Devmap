@@ -183,7 +183,7 @@ module.LoadModule = function()
 				globals.Camera.CFrame = globals.Camera.CFrame * CFrame.Angles(camBobupdated.X,0,camBobupdated.Z)
 
 				print(aimOffsetCF)
-				aimCF = aimOffsetCF.Position + aimOffsetCF.Rotation + currentWeaponValue.Lerps.Aim.Value --Aiming
+				aimCF = aimOffsetCF.Position + aimOffsetCF.Rotation * currentWeaponValue.Lerps.Aim.Value --Aiming
 				local camAimCF = Vector3.new(0,0,math.rad(-7))*currentWeaponValue.Lerps.Aim.Value -- Camera Aiming
 				sprintV3Rot = currentWeaponValue.Offsets.SprintOffsetV3Rot.Value * currentWeaponValue.Lerps.Sprint.Value
 				sprintV3Lin = currentWeaponValue.Offsets.SprintOffsetV3Lin.Value * currentWeaponValue.Lerps.Sprint.Value
